@@ -44,7 +44,6 @@ Source0: https://github.com/openshift/microshift/archive/%{commit}/microshift-%{
 ExclusiveArch: x86_64 aarch64
 
 BuildRequires: gcc
-BuildRequires: golang >= %{golang_version}
 BuildRequires: make
 BuildRequires: policycoreutils
 BuildRequires: systemd
@@ -170,6 +169,15 @@ install -d -m755 %{buildroot}/%{_sysconfdir}/microshift/manifests
 install -p -m644 packaging/microshift/config.yaml %{buildroot}%{_sysconfdir}/microshift/config.yaml.default
 install -p -m644 packaging/microshift/lvmd.yaml %{buildroot}%{_sysconfdir}/microshift/lvmd.yaml.default
 install -p -m644 packaging/microshift/ovn.yaml %{buildroot}%{_sysconfdir}/microshift/ovn.yaml.default
+install -p -m644 packaging/microshift/multicluster-controlplane-agent/kustomization.yaml %{buildroot}%{_sysconfdir}/microshift/manifests/kustomization.yaml
+install -p -m644 packaging/microshift/multicluster-controlplane-agent/clusterrole.yaml %{buildroot}%{_sysconfdir}/microshift/manifests/clusterrole.yaml
+install -p -m644 packaging/microshift/multicluster-controlplane-agent/clusterrolebinding-admin.yaml %{buildroot}%{_sysconfdir}/microshift/manifests/clusterrolebinding-admin.yaml
+install -p -m644 packaging/microshift/multicluster-controlplane-agent/clusterrolebinding.yaml %{buildroot}%{_sysconfdir}/microshift/manifests/clusterrolebinding.yaml
+install -p -m644 packaging/microshift/multicluster-controlplane-agent/deployment.yaml %{buildroot}%{_sysconfdir}/microshift/manifests/deployment.yaml
+install -p -m644 packaging/microshift/multicluster-controlplane-agent/namespace.yaml %{buildroot}%{_sysconfdir}/microshift/manifests/namespace.yaml
+install -p -m644 packaging/microshift/multicluster-controlplane-agent/role.yaml %{buildroot}%{_sysconfdir}/microshift/manifests/role.yaml
+install -p -m644 packaging/microshift/multicluster-controlplane-agent/rolebinding.yaml %{buildroot}%{_sysconfdir}/microshift/manifests/rolebinding.yaml
+install -p -m644 packaging/microshift/multicluster-controlplane-agent/serviceaccount.yaml %{buildroot}%{_sysconfdir}/microshift/manifests/serviceaccount.yaml
 
 # release-info files
 mkdir -p -m755 %{buildroot}%{_datadir}/microshift/release
@@ -265,6 +273,15 @@ systemctl enable --now --quiet openvswitch || true
 %config(noreplace) %{_sysconfdir}/microshift/config.yaml.default
 %config(noreplace) %{_sysconfdir}/microshift/lvmd.yaml.default
 %config(noreplace) %{_sysconfdir}/microshift/ovn.yaml.default
+%config(noreplace) %{_sysconfdir}/microshift/manifests/kustomization.yaml
+%config(noreplace) %{_sysconfdir}/microshift/manifests/clusterrole.yaml
+%config(noreplace) %{_sysconfdir}/microshift/manifests/clusterrolebinding-admin.yaml
+%config(noreplace) %{_sysconfdir}/microshift/manifests/clusterrolebinding.yaml
+%config(noreplace) %{_sysconfdir}/microshift/manifests/deployment.yaml
+%config(noreplace) %{_sysconfdir}/microshift/manifests/namespace.yaml
+%config(noreplace) %{_sysconfdir}/microshift/manifests/role.yaml
+%config(noreplace) %{_sysconfdir}/microshift/manifests/rolebinding.yaml
+%config(noreplace) %{_sysconfdir}/microshift/manifests/serviceaccount.yaml
 
 %files release-info
 %{_datadir}/microshift/release/release*.json

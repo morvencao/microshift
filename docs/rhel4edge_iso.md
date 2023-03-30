@@ -14,6 +14,8 @@ Execute the `scripts/image-builder/configure.sh` script to install the tools nec
 
 Download the OpenShift pull secret from the https://console.redhat.com/openshift/downloads#tool-pull-secret page and save it into the `~microshift/.pull-secret.json` file.
 
+Download the hub kubeconfig and save it into the `~microshift/.hub-kubeconfig` file.
+
 Make sure there is more than 20GB of free disk space necessary for the build artifacts. Run the following command to free the space if necessary.
 ```bash
 ~/microshift/scripts/image-builder/cleanup.sh -full
@@ -47,6 +49,10 @@ Usage: build.sh <-pull_secret_file path_to_file> [OPTION]...
           Path to a file containing the OpenShift pull secret, which can be
           obtained from https://console.redhat.com/openshift/downloads#tool-pull-secret
 
+  -hub_kubeconfig_file path_to_file
+          Path to a file containing the hub kubeconfig, which can be
+          used to connect to the hub cluster
+
 Optional arguments:
   -microshift_rpms path_or_URL
           Path or URL to the MicroShift RPM packages to be included
@@ -72,7 +78,7 @@ Optional arguments:
 
 Continue by running the build script with the pull secret file argument and wait until build process is finished. It may take over 30 minutes to complete a full build cycle.
 ```bash
-~/microshift/scripts/image-builder/build.sh -pull_secret_file ~/.pull-secret.json
+~/microshift/scripts/image-builder/build.sh -pull_secret_file ~/.pull-secret.json -hub_kubeconfig_file ~/.hub-kubeconfig
 ```
 The script performs the following tasks:
 - Check for minimum 10GB of available disk space
@@ -134,7 +140,7 @@ EOF
 
 Proceed by running the build script with the `-embed_containers` argument to include the dependent container images into the generated ISO.
 ```bash
-~/microshift/scripts/image-builder/build.sh -pull_secret_file ~/.pull-secret.json -embed_containers
+~/microshift/scripts/image-builder/build.sh -pull_secret_file ~/.pull-secret.json -hub_kubeconfig_file ~/.hub-kubeconfig -embed_containers
 ```
 
 > If user workloads depend on additional container images, they need to be included by the user separately.
@@ -168,6 +174,32 @@ virt-install \
     --os-type generic \
     --events on_reboot=restart \
     --cdrom ./microshift-installer-*.$(uname -i).iso \
+    --wait \
+"
+```
+
+if you want to add kickstart file, run the following commands:
+
+```bash
+sudo cp ~/microshift/_output/image-builder/microshift-installer-4.14.0-0.nightly-2023-03-27-200508.x86_64.iso /var/lib/libvirt/images/
+sudo cp ~/microshift/_output/image-builder/kickstart.ks /var/lib/libvirt/images/
+VMNAME=microshift-edge
+DVDISO=/var/lib/libvirt/images/microshift-installer-4.14.0-0.nightly-2023-03-27-200508.x86_64.iso
+KICKSTART_FILE=/var/lib/libvirt/images/kickstart.ks
+
+sudo -b bash -c " \
+cd /var/lib/libvirt/images && \
+virt-install \
+    --name ${VMNAME} \
+    --vcpus 2 \
+    --memory 3072 \
+    --disk path=./${VMNAME}.qcow2,size=20 \
+    --network network=default,model=virtio \
+    --os-type generic \
+    --events on_reboot=restart \
+    --location ${DVDISO} \
+    --initrd-inject=${KICKSTART_FILE} \
+    --extra-args \"inst.ks=file:/$(basename ${KICKSTART_FILE})\" \
     --wait \
 "
 ```

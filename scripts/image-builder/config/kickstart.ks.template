@@ -44,6 +44,12 @@ REPLACE_OCP_PULL_SECRET_CONTENTS
 EOF
 chmod 600 /etc/crio/openshift-pull-secret
 
+# The hub-kubeconfig is mandatory for klusterlet to conntect back to hub cluster.
+cat > /etc/microshift/manifests/hub-kubeconfig << EOF
+REPLACE_HUB_KUBECONFIG_CONTENTS
+EOF
+chmod 600 /etc/microshift/manifests/hub-kubeconfig
+
 # Create a default redhat user, allowing it to run sudo commands with password
 useradd -m -d /home/redhat -p \$5\$XDVQ6DxT8S5YWLV7\$8f2om5JfjK56v9ofUkUAwZXTxJl3Sqnc9yPnza4xoJ0 redhat
 echo -e 'redhat\tALL=(ALL)\tPASSWD: ALL' > /etc/sudoers.d/microshift

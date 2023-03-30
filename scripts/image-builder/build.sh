@@ -11,6 +11,7 @@ OSTREE_SERVER_NAME=127.0.0.1:8080
 LVM_SYSROOT_SIZE_MIN=10240
 LVM_SYSROOT_SIZE=${LVM_SYSROOT_SIZE_MIN}
 OCP_PULL_SECRET_FILE=
+HUB_KUBECONFIG_FILE=
 MICROSHIFT_RPM_SOURCE=${ROOTDIR}/_output/rpmbuild/
 AUTHORIZED_KEYS_FILE=
 AUTHORIZED_KEYS=
@@ -34,6 +35,10 @@ usage() {
     echo "  -pull_secret_file path_to_file"
     echo "          Path to a file containing the OpenShift pull secret, which can be"
     echo "          obtained from https://console.redhat.com/openshift/downloads#tool-pull-secret"
+    echo ""
+    echo "  -hub_kubeconfig_file path_to_file"
+    echo "          Path to a file containing the hub kubeconfig, which can be"
+    echo "          used to connect to the hub cluster"
     echo ""
     echo "Optional arguments:"
     echo "  -microshift_rpms path_or_URL"
@@ -141,6 +146,13 @@ while [ $# -gt 0 ] ; do
         [ ! -s "${OCP_PULL_SECRET_FILE}" ] && usage "Empty or missing pull secret file"
         shift
         ;;
+    -hub_kubeconfig_file)
+        shift
+        HUB_KUBECONFIG_FILE="$1"
+        [ -z "${HUB_KUBECONFIG_FILE}" ] && usage "Hub kubeconfig file not specified"
+        [ ! -s "${HUB_KUBECONFIG_FILE}" ] && usage "Empty or missing hub kubeconfig file"
+        shift
+        ;;
     -microshift_rpms)
         shift
         MICROSHIFT_RPM_SOURCE="$1"
@@ -197,6 +209,10 @@ if [ -z "${OSTREE_SERVER_NAME}" ] || [ -z "${OCP_PULL_SECRET_FILE}" ] ; then
 fi
 if [ ! -r ${OCP_PULL_SECRET_FILE} ] ; then
     echo "ERROR: pull_secret_file file does not exist or not readable: ${OCP_PULL_SECRET_FILE}"
+    exit 1
+fi
+if [ ! -r ${HUB_KUBECONFIG_FILE} ] ; then
+    echo "ERROR: hub_kubeconfig_file file does not exist or not readable: ${HUB_KUBECONFIG_FILE}"
     exit 1
 fi
 if [ -n "${AUTHORIZED_KEYS_FILE}" ]; then
@@ -327,6 +343,7 @@ cat "${SCRIPTDIR}/config/kickstart.ks.template" \
     | sed "s;REPLACE_LVM_SYSROOT_SIZE;${LVM_SYSROOT_SIZE};g" \
     | sed "s;REPLACE_OSTREE_SERVER_NAME;${OSTREE_SERVER_NAME};g" \
     | sed "s;REPLACE_OCP_PULL_SECRET_CONTENTS;$(cat $OCP_PULL_SECRET_FILE | jq -c);g" \
+    | sed "s;REPLACE_HUB_KUBECONFIG_CONTENTS;$(cat $HUB_KUBECONFIG_FILE);g" \
     | sed "s;REPLACE_REDHAT_AUTHORIZED_KEYS_CONTENTS;${AUTHORIZED_KEYS};g" \
     | sed "s;REPLACE_OSVERSION;${OSVERSION};g" \
     | sed "s;REPLACE_BUILD_ARCH;${BUILD_ARCH};g" \
